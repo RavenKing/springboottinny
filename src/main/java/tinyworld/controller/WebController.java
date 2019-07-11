@@ -3,6 +3,8 @@ package tinyworld.controller;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URI;
 import java.net.URL;
 import java.sql.Connection;
@@ -32,7 +34,7 @@ public class WebController {
 
 		List<String> newList = new ArrayList<>();
 
-		 String conn = this.getConnection(newList);
+		String conn = this.getConnection(newList);
 //        try {
 //			//executeSomething(conn);
 //		} catch (SQLException e) {
@@ -58,7 +60,7 @@ public class WebController {
 		String DB_HOST = "";
 		String DB_PORT = "";
 		JSONArray arr = new JSONArray();
-		JSONArray employeedata = null;
+		String employeedata = null;
 		int status = 0;
 		try {
 			JSONObject obj = new JSONObject(System.getenv("VCAP_SERVICES"));
@@ -72,7 +74,7 @@ public class WebController {
 			arr = obj.getJSONArray("xsuaa");
 			String XSUAA = arr.getJSONObject(0).getJSONObject("credentials").getString("url");
 
-			String serviceUrl = sDestinationURL + "/destination-configuration/v1/destinations/sampleData";
+			String serviceUrl = sDestinationURL + "/destination-configuration/v1/destinations/kevinWired";
 
 			URI xsuaaUrl = new URI(XSUAA);
 			// get acccess token
@@ -109,28 +111,54 @@ public class WebController {
 			String TargetUrl = destinationJSON.getJSONObject("destinationConfiguration").getString("URL");
 			if (destinationJSON.getJSONObject("destinationConfiguration").getString("Authentication")
 					.equals("NoAuthentication")) {
-				URL sTargetURL = new URL(TargetUrl);
-				HttpURLConnection urlTargetConnection = (HttpURLConnection) sTargetURL.openConnection();
+				URL sTargetURL = new URL(TargetUrl+"/sap/bc/ping");
+				// set proxy
+				JSONObject connectivityCredentials = obj.getJSONArray("connectivity").getJSONObject(0)
+						.getJSONObject("credentials");
+
+				String connProxyHost = connectivityCredentials.getString("onpremise_proxy_host");
+				int connProxyPort = Integer.parseInt(connectivityCredentials.getString("onpremise_proxy_port"));
+
+				String clientidConnect = connectivityCredentials.getString("clientid");
+				String clientsecretConnect = connectivityCredentials.getString("clientsecret");
+
+				UaaContextFactory factoryConnect = UaaContextFactory.factory(xsuaaUrl).authorizePath("/oauth/authorize")
+						.tokenPath("/oauth/token");
+				TokenRequest tokenRequestConnect = factoryConnect.tokenRequest();
+				tokenRequestConnect.setGrantType(GrantType.CLIENT_CREDENTIALS);
+				tokenRequestConnect.setClientId(clientidConnect);
+				tokenRequestConnect.setClientSecret(clientsecretConnect);
+				UaaContext xsuaaContextConnect = factoryConnect.authenticate(tokenRequestConnect);
+				CompositeAccessToken accessTokenConnect = xsuaaContextConnect.getToken();
+				
+				
+				
+				Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(connProxyHost, connProxyPort));
+				System.out.println(proxy.toString());
+				HttpURLConnection urlTargetConnection = (HttpURLConnection) sTargetURL.openConnection(proxy);
+				urlTargetConnection.setRequestProperty("x-csrf-token", "fetch");
+				urlTargetConnection.setRequestProperty("Proxy-Authorization", "Bearer " + accessTokenConnect);
 				urlTargetConnection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 				urlTargetConnection.setRequestProperty("Accept", "application/json");
-				status = urlConnection.getResponseCode();
-
+				urlTargetConnection.setRequestProperty("SAP-Connectivity-SCC-Location_ID", "Shanghai");
+				
+				
+				status = urlTargetConnection.getResponseCode();
+				
+				
+				
 				BufferedReader innew = new BufferedReader(new InputStreamReader(urlTargetConnection.getInputStream()));
 				StringBuffer employeeContent = new StringBuffer();
 
 				while ((inputLine = innew.readLine()) != null) {
 					employeeContent.append(inputLine);
 				}
-				employeedata = new JSONArray(employeeContent.toString());
+				employeedata = employeeContent.toString();
 				innew.close();
 			}
 
 //			// set proxy
-//			JSONObject connectivityCredentials = obj.getJSONArray("connectivity").getJSONObject(0)
-//					.getJSONObject("credentials");
-//
-//			String connProxyHost = connectivityCredentials.getString("onpremise_proxy_host");
-//			int connProxyPort = Integer.parseInt(connectivityCredentials.getString("onpremise_proxy_port"));
+
 //			Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(connProxyHost, connProxyPort));
 //
 //			URL url = new URL("https://usphlhanaags07.phl.sap.corp:44311");
@@ -186,7 +214,7 @@ public class WebController {
 //		        System.out.println("Connection Error");
 		}
 
-		return employeedata.getJSONObject(0).toString();
+		return employeedata.toString();
 	}
 
 }
