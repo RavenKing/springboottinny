@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -57,13 +58,26 @@
 
 
 	<dependencies>
+		<!-- cloud foundry -->
+		<dependency>
+			<groupId>org.cloudfoundry.identity</groupId>
+			<artifactId>cloudfoundry-identity-client-lib</artifactId>
+			<version>4.19.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
+	
 
-			<dependency>
-				<groupId>org.json</groupId>
-				<artifactId>json</artifactId>
-				<version>20180130</version>
-			</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20180130</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.docx4j/docx4j -->
 		<dependency>
 			<groupId>org.docx4j</groupId>

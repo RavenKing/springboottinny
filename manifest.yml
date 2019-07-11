@@ -2,9 +2,9 @@
 applications:
 - name: tinyworld
   host: tinyworld-imple-java-app
-  memory: 2G
+  memory: 1G
   instances: 1
-  disk_quota: 2G
+  disk_quota: 1G
   timeout: 180
   path: target/tp-simple-java-app.jar
   buildpack: sap_java_buildpack
@@ -13,4 +13,7 @@ applications:
       # This may help with slow startup times, especially when using Spring Boot.
       JAVA_OPTS: -Djava.security.egd=file:///dev/./urandom
   services:
-  - springboot
+ # - springboot
+  - uaa_com.kevin
+  - dest_com.kevin
+  - kevin-connectivity
