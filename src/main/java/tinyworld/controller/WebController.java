@@ -10,6 +10,7 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import org.cloudfoundry.identity.client.UaaContext;
@@ -111,7 +112,7 @@ public class WebController {
 			String TargetUrl = destinationJSON.getJSONObject("destinationConfiguration").getString("URL");
 			if (destinationJSON.getJSONObject("destinationConfiguration").getString("Authentication")
 					.equals("NoAuthentication")) {
-				URL sTargetURL = new URL(TargetUrl+"/sap/bc/ping");
+				URL sTargetURL = new URL(TargetUrl+"/sap/opu/odata/sap/Z_PRODUCTS_ODATA_SRV/ProductsSet?$format=json");
 				// set proxy
 				JSONObject connectivityCredentials = obj.getJSONArray("connectivity").getJSONObject(0)
 						.getJSONObject("credentials");
@@ -142,10 +143,11 @@ public class WebController {
 				urlTargetConnection.setRequestProperty("Accept", "application/json");
 				urlTargetConnection.setRequestProperty("SAP-Connectivity-SCC-Location_ID", "Shanghai");
 				
-				
+				String authorization="";
+	            authorization = "TRINHEM:Lemonade99";
+				String basicAuth = "Basic " + new String(Base64.getEncoder().encode(authorization.getBytes()));
+				urlTargetConnection.setRequestProperty("Authorization", basicAuth);				
 				status = urlTargetConnection.getResponseCode();
-				
-				
 				
 				BufferedReader innew = new BufferedReader(new InputStreamReader(urlTargetConnection.getInputStream()));
 				StringBuffer employeeContent = new StringBuffer();
