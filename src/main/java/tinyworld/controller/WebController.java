@@ -2,12 +2,14 @@ package tinyworld.controller;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
+//import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.slf4j.*;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -19,8 +21,9 @@ import tinyworld.util.Constants;
 @RestController
 @RequestMapping(Constants.Root_API)
 public class WebController {
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	@GetMapping("/all")
+	@GetMapping("/all")  
 	public List<String> getAllItems() {
 
 		List<String> newList = new ArrayList<>();
@@ -32,6 +35,7 @@ public class WebController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		logger.info(newList.toString());
 		return newList;
 	}
 
@@ -41,7 +45,7 @@ public class WebController {
 
 		List<String> newList = new ArrayList<>();
 		Statement stmt = conn.createStatement();
-		ResultSet resultSet = stmt.executeQuery("SELECT NAME from FB578CC3DC744AF78AF7311B0F52DDB3.TEST;");
+		ResultSet resultSet = stmt.executeQuery("SELECT NAME from FB578CC3DC744AF78AF7311B0F52DDB3.DEMO_TEST;");
 		System.out.print(resultSet);
 		while (resultSet.next()) {
 			String title = resultSet.getString(1);
